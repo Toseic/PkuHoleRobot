@@ -1,5 +1,5 @@
 from ast import keyword
-import enum
+from enum import Enum
 import logging
 import time
 
@@ -9,12 +9,17 @@ from func import *
 from messager import *
 
 
-class TaskState(enum.Enum):
-    pending = -2,
-    pause = -1,
-    running = 0,
-    finished = 1,
-    stoped = 2
+class TaskState(Enum):
+    pending = -2
+    pause = -1
+    running = 0
+    finished = 1
+
+
+messagerMap = {
+    "notice": notice,
+    notice: "notice",
+}
 
 
 class Task:
@@ -22,7 +27,8 @@ class Task:
             self, id,
             logger: logging.RootLogger,
             messager=notice,
-            state=TaskState.pending) -> None:
+            state=TaskState.pending,
+            cacheload=False) -> None:
 
         self.state = state
         self.createtime = time.ctime()
@@ -60,19 +66,22 @@ class Task:
 
 class AlarmTask(Task):
     class Mode(enum.Enum):
-        match_any = 0,
-        match_all = 1,
-        once_match = True,
-        continue_match = False,
+        match_any = 0
+        match_all = 1
+        once_match = 2
+        continue_match = 3
 
-    def __init__(self, id, logger: logging.RootLogger, messager=notice, state=TaskState.pending) -> None:
-        super().__init__(id, logger, messager, state)
+    def __init__(self, id, logger: logging.RootLogger, messager=notice, state=TaskState.pending, cacheload=False) -> None:
+        super().__init__(id, logger, messager, state, cacheload)
         self.key_words = False
-        self.key_words_set()
-        self.set_mode()
-        self.set_sleeptime()
+        if not cacheload:
+            self.key_words_set()
+            self.set_mode()
+            self.set_sleeptime()
         self.check_record = []
-        self.detail = 'key words:\n'+str(self.key_words)
+        self.detail = 'key words: '+str(self.key_words)
+        self.createdtime = time.ctime()
+        self.type = "alarm"
 
     def __str__(self):
         return "alarm"
@@ -158,6 +167,29 @@ class TaskManager:
         self.tasks.append(newtask)
         self.logger.info("Create new task, type:{}, id:{}".format(
             tasktype, newtask.id))
+
+    def reloadTask(self, info):
+
+        if info["id"] != self.idPoint:
+            raise Exception(
+                "Error id in task:{}\n".format(str(info)) +
+                "But self.idPoint is {}".format(self.idPoint)
+            )
+
+        newtask = self.optionalTasks[info["type"]](
+            id=info["id"],
+            logger=self.logger,
+            cacheload=True,
+        )
+        newtask.createdtime = info["detail"]["createdtime"]
+        
+        newtask.state = TaskState(info["state"])
+        newtask.messager = messagerMap[info["messager"]]
+        if info["type"] == "alarm":
+            newtask.key_words = info["detail"]["keywords"]
+        newtask.detail = 'key words: '+str(newtask.key_words)
+        self.tasks.append(newtask)
+        self.idPoint += 1
 
     def stopTask(self, id):
         pass

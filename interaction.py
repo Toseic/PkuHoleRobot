@@ -41,7 +41,7 @@ def inacTask(robot: Robot):
     cls()
 
 
-def inacFrame(robot: Robot = None):
+def inacFrame(robot: Robot):
     while True:
         print(">", end='')
         inputinfo = input(" ")
@@ -65,8 +65,11 @@ def inacFrame(robot: Robot = None):
                 if action == "pause":
                     taskrun = threading.Thread(target=choosedtask.pause)
                     taskrun.start()                   
-        elif inputinfo == "quit":
-            print("bye~")
+        elif "quit" in inputinfo:
+            if "-hard" in inputinfo:
+                robot.quit(False)
+                break
+            robot.quit()
             break
         # suggest
         else:
