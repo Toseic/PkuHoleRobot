@@ -1,2 +1,7 @@
-*/*ignore*/*
+/ignore/
 *private*
+/log/
+/cache/
+/json/
+/__pycache__/
+*.cpp
