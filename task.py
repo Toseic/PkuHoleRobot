@@ -58,12 +58,13 @@ class Task:
         self.logger.info(info)
 
     def messagerSet(self):
+        # TODO:
         pass
 
     def message(self, *info):
         self.messager(*info)
 
-
+# TODO: more task 
 class AlarmTask(Task):
     class Mode(enum.Enum):
         match_any = 0
@@ -169,7 +170,7 @@ class TaskManager:
             tasktype, newtask.id))
 
     def reloadTask(self, info):
-
+        # TODO: more feature
         if info["id"] != self.idPoint:
             raise Exception(
                 "Error id in task:{}\n".format(str(info)) +
@@ -192,6 +193,7 @@ class TaskManager:
         self.idPoint += 1
 
     def stopTask(self, id):
+        # TODO: 
         pass
 
     def pauseTask(self, id):
@@ -200,5 +202,5 @@ class TaskManager:
     def showTask(self):
         pass
 
-    def cache_read(self):
-        pass
+    # def cache_read(self):
+    #     pass

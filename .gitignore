@@ -5,3 +5,5 @@
 /json/
 /__pycache__/
 *.cpp
+.DS_Store
+/test/

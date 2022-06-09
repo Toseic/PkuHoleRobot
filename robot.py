@@ -37,11 +37,13 @@ class Robot:
             # pass
             raise e
 
-    def task_run():
+    def task_run(self):
+        # TODO: begin/pause all tasks
         pass
 
     # def quit(needcache=True):
     def quit(self, neecache = True):
+        # TODO: pause running tasks
         data = {}
         tasks = []
         for task in self.manager.tasks:
@@ -54,6 +56,7 @@ class Robot:
             detail_["createdtime"] = task.detail
             detail_["keywords"] = task.key_words
             taskinfo["detail"] = detail_
+            # TODO: more feature
             tasks.append(taskinfo)
         data["tasks"] = tasks
         with open("./cache/cache.json", "w", encoding='utf-8') as f:

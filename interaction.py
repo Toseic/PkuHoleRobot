@@ -33,6 +33,7 @@ def inacTask(robot: Robot):
             break
         if inpchar == " ":
             print("detail")
+            # TODO: detail
         if inpchar == "r":
             taskshow(robot)
         if inpchar == "n":
@@ -49,6 +50,7 @@ def inacFrame(robot: Robot):
             continue
         elif inputinfo == "help":
             print("help info")
+            # TODO: help info
         elif  inputinfo == "tasks":
             inacTask(robot)
         elif "task" in inputinfo:

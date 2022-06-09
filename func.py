@@ -7,7 +7,7 @@ from ctypes import *
 
 import requests
 
-dll = CDLL('.\dll\input.dll')
+dll = CDLL('./dll/input_mac.so')
 
 inacSuggest = {
     "task": "tasks"
@@ -68,7 +68,7 @@ def Input():
 
 
 def cls():
-    _ = os.system("cls")
+    os.system("clear")
 
 
 def jsapiver_get():
