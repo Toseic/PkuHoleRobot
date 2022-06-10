@@ -7,6 +7,7 @@ from ctypes import *
 
 import requests
 
+
 dll = CDLL('./dll/input_mac.so')
 
 inacSuggest = {
@@ -158,7 +159,9 @@ def info_merge(info_):
     return fina
 
 
-def crawl_list(deep=1, merge=True):
+def crawl_list(deep=1, merge=False):
+    # if merge and storeindb:
+    #     raise Exception("error: [merge] and [storeindb] are both True!")
     url = 'https://pkuhelper.pku.edu.cn/services/pkuhole/api.php?action=getlist&p={}&PKUHelperAPI=3.0&jsapiver={}&user_token={}'
     url = url.format('{}', jsapiver_get(), token)
     info = []
@@ -180,8 +183,3 @@ data = get_json()
 token = data["token"]
 my_proxies = data["proxies"]
 
-# if __name__ == "__main__":
-#     lis = crawl_list()
-#     for i,j in lis.items():
-#         print(i,j)
-#     print()

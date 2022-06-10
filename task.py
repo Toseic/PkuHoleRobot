@@ -1,12 +1,12 @@
-from ast import keyword
-from enum import Enum
-import logging
 import time
+from enum import Enum
 
 from prettytable import PrettyTable
 
+from database import *
 from func import *
 from messager import *
+from log import logger
 
 
 class TaskState(Enum):
@@ -25,37 +25,48 @@ messagerMap = {
 class Task:
     def __init__(
             self, id,
-            logger: logging.RootLogger,
             messager=notice,
             state=TaskState.pending,
-            cacheload=False) -> None:
+            ) -> None:
 
         self.state = state
         self.createtime = time.ctime()
         self.id = id
-        self.logger = logger
         self.messager = messager
+        self.type = 'task'
+
+    def __str__(self):
+        return self.type
 
     def begin(self):
         pass
 
+    def set_sleeptime(self, time = None):
+        if not time:
+            self.sleeptime = int(input("sleep time?: "))
+        else:
+            try:
+                self.sleeptime = int(time)
+            except:
+                print("error")
+
     def run(self):
         if self.state != TaskState.running:
             self.state = TaskState.running
-            self.logger.info("task {} begin running.".format(self.id))
+            logger.info("task {} begin running.".format(self.id))
 
     def pause(self):
         if self.state != TaskState.pause:
             self.state = TaskState.pause
-            self.logger.info("task {} pause.".format(self.id))
+            logger.info("task {} pause.".format(self.id))
 
     def finish(self):
         if self.state != TaskState.finished:
             self.state = TaskState.finished
-            self.logger.info("task {} finish.".format(self.id))
+            logger.info("task {} finish.".format(self.id))
 
     def infoLog(self, info):
-        self.logger.info(info)
+        logger.info(info)
 
     def messagerSet(self):
         # TODO:
@@ -64,17 +75,23 @@ class Task:
     def message(self, *info):
         self.messager(*info)
 
-# TODO: more task 
+
 class AlarmTask(Task):
     class Mode(enum.Enum):
         match_any = 0
         match_all = 1
         once_match = 2
         continue_match = 3
+    # class Modestr(enum.Enum):
+    #     match_any = 'match_any'
+    #     match_all = 'match_all'
+    #     once_match = 'once_match'
+    #     continue_match = 'continue_match'
 
-    def __init__(self, id, logger: logging.RootLogger, messager=notice, state=TaskState.pending, cacheload=False) -> None:
-        super().__init__(id, logger, messager, state, cacheload)
+    def __init__(self, id, messager=notice, state=TaskState.pending, cacheload=False) -> None:
+        super().__init__(id, messager, state)
         self.key_words = False
+        self.mode = []
         if not cacheload:
             self.key_words_set()
             self.set_mode()
@@ -83,15 +100,24 @@ class AlarmTask(Task):
         self.detail = 'key words: '+str(self.key_words)
         self.createdtime = time.ctime()
         self.type = "alarm"
+        if not cacheload:
+            print("your task[{}] is created, \nIt's mode is defult to be [".format(self.id)
+                + rwc("match all", Color.yellow) +
+                "] and ["+rwc("once match", Color.yellow)+"]"
+                )
 
-    def __str__(self):
-        return "alarm"
+    def modestr(self):
+        return (
+            str(self.mode[0]) + " "
+            + str(self.mode[1])
+        )
 
-    def set_mode(self):
-        self.mode = [self.Mode.match_all, self.Mode.once_match]
-
-    def set_sleeptime(self):
-        self.sleeptime = 10
+    def set_mode(self, mode_=None):
+        if not mode_:
+            self.mode = [self.Mode.match_all, self.Mode.once_match]
+        else:
+            mode1, mode2 = mode_[0], mode_[1]
+            self.mode = [self.Mode(mode1), self.Mode(mode2)]
 
     def key_words_set(self):
         info = input("input key words(split by ^):\n")
@@ -141,66 +167,64 @@ class AlarmTask(Task):
 
             time.sleep(self.sleeptime)
 
+    def infocache(self):
+        taskinfo = {}
+        taskinfo["id"] = self.id
+        taskinfo["messager"] = messagerMap[self.messager]
+        taskinfo["type"] = self.type
+        taskinfo["sleeptime"] = self.sleeptime
+        detail_ = {}
+        detail_["keywords"] = self.key_words
+        taskinfo["detail"] = detail_
+        taskinfo["mode"] = [self.mode[0].value, self.mode[1].value]
+        return taskinfo
 
-class TaskManager:
-    optionalTasks = {
-        'alarm': AlarmTask,
-    }
-
-    def __init__(self, logger: logging.RootLogger) -> None:
-        self.logger = logger
-        self.tasks = []
-        self.idPoint = 0
-
-    def createTask(self):
-        cls()
-        print("Please choose a task type:\n")
-        table = PrettyTable(['name', 'describe'])
-        for i in self.optionalTasks.keys():
-            table.add_row([i, "describe"])
-        print(table)
-        tasktype = input(": ")
-        newtask = self.optionalTasks[tasktype](
-            id=self.idPoint,
-            logger=self.logger,
-        )
-        self.idPoint += 1
-        self.tasks.append(newtask)
-        self.logger.info("Create new task, type:{}, id:{}".format(
-            tasktype, newtask.id))
-
-    def reloadTask(self, info):
-        # TODO: more feature
-        if info["id"] != self.idPoint:
-            raise Exception(
-                "Error id in task:{}\n".format(str(info)) +
-                "But self.idPoint is {}".format(self.idPoint)
-            )
-
-        newtask = self.optionalTasks[info["type"]](
+    def reloadtask(info):
+        newtask = AlarmTask(
             id=info["id"],
-            logger=self.logger,
             cacheload=True,
         )
-        newtask.createdtime = info["detail"]["createdtime"]
-        
-        newtask.state = TaskState(info["state"])
         newtask.messager = messagerMap[info["messager"]]
-        if info["type"] == "alarm":
-            newtask.key_words = info["detail"]["keywords"]
+        newtask.key_words = info["detail"]["keywords"]
         newtask.detail = 'key words: '+str(newtask.key_words)
-        self.tasks.append(newtask)
-        self.idPoint += 1
+        newtask.set_mode(info["mode"])
+        newtask.set_sleeptime(info["sleeptime"])
+        return newtask
 
-    def stopTask(self, id):
-        # TODO: 
-        pass
 
-    def pauseTask(self, id):
-        pass
+class TrapTask(Task):
+    def __init__(self, id, messager=notice, state=TaskState.pending, cacheload=False) -> None:
+        super().__init__(id, messager, state)
+        self.sleeptime = 20
+        if not cacheload:
+            self.set_sleeptime()
+            print("your task[{}] is created, \nIt's sleeptime is defult to be {}".format(self.id, self.sleeptime))
+        self.detail = "crawl time gap: {}".format(self.sleeptime)
+        self.type = "trap"
 
-    def showTask(self):
-        pass
+    def begin(self):
+        super().run()
+        while self.state == TaskState.running:
+            holeliststore(crawl_list())
+            self.infoLog("task:Traptask | crawl list(deep=1)")
+            time.sleep(self.sleeptime)
 
-    # def cache_read(self):
-    #     pass
+    def modestr(self):
+        return "simple mode"
+
+    def infocache(self):
+        taskinfo = {}
+        taskinfo["id"] = self.id
+        taskinfo["type"] = self.type
+        taskinfo["sleeptime"] = self.sleeptime
+        return taskinfo
+
+    def reloadtask(info):
+        newtask = TrapTask(
+            id=info["id"],
+            cacheload=True,
+        )
+        newtask.set_sleeptime(info["sleeptime"])
+        newtask.detail = "crawl time gap: {}".format(newtask.sleeptime)
+        newtask.type = "trap"
+        return newtask

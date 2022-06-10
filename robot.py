@@ -1,13 +1,15 @@
-from multiprocessing import managers
-from task import *
-import os
 import json
+import os
+from multiprocessing import managers
+
+from manager import TaskManager
+from task import *
+from log import logger
 
 
 class Robot:
-    def __init__(self, logger: logging.RootLogger) -> None:
-        self.logger = logger
-        self.manager = TaskManager(self.logger)
+    def __init__(self) -> None:
+        self.manager = TaskManager()
         self.cache_read()
 
     def cache_read(self):
@@ -15,10 +17,12 @@ class Robot:
         if not os.path.exists(cache_path):
             return
         try:
-            print("Cache file is available, \nDo you need to reload your task?: [Y/n]",end="")
+            print(
+                "Cache file is available, \nDo you need to reload your task?: [Y/n]", end="")
             ans = input(" ")
-            if ans in ["N","n"]: return
-            if ans not in ["\n","","Y","y"]: 
+            if ans in ["N", "n"]:
+                return
+            if ans not in ["\n", "", "Y", "y"]:
                 print("you bad buy!")
                 return
             if len(self.manager.tasks) != 0 or self.manager.idPoint != 0:
@@ -38,29 +42,14 @@ class Robot:
             raise e
 
     def task_run(self):
-        # TODO: begin/pause all tasks
         pass
 
     # def quit(needcache=True):
-    def quit(self, neecache = True):
-        # TODO: pause running tasks
+    def quit(self, neecache=True):
+        self.manager.pauseallTask()
         data = {}
-        tasks = []
-        for task in self.manager.tasks:
-            taskinfo = {}
-            taskinfo["id"] = task.id
-            taskinfo["state"] = task.state.value
-            taskinfo["messager"] = messagerMap[task.messager]
-            taskinfo["type"] = task.type
-            detail_ = {}
-            detail_["createdtime"] = task.detail
-            detail_["keywords"] = task.key_words
-            taskinfo["detail"] = detail_
-            # TODO: more feature
-            tasks.append(taskinfo)
-        data["tasks"] = tasks
+        data["tasks"] = self.manager.infocache()
         with open("./cache/cache.json", "w", encoding='utf-8') as f:
             json.dump(data, f)
 
         print("Bye.")
-

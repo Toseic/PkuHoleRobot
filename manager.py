@@ -1,5 +1,5 @@
 from task import *
-
+from log import logger
 
 class TaskManager:
     optionalTasks = {
@@ -7,8 +7,7 @@ class TaskManager:
         'trap': [TrapTask, "crawl hole and store in database."]
     }
 
-    def __init__(self, logger: logging.RootLogger) -> None:
-        self.logger = logger
+    def __init__(self) -> None:
         self.tasks = []
         self.idPoint = 0
 
@@ -23,7 +22,6 @@ class TaskManager:
         try:
             newtask = self.optionalTasks.get(tasktype)[0](
                 id=self.idPoint,
-                logger=self.logger,
             )
         except Exception:
             print("you bad guy.")
@@ -31,20 +29,19 @@ class TaskManager:
 
         self.idPoint += 1
         self.tasks.append(newtask)
-        self.logger.info("Create new task, type:{}, id:{}".format(
+        logger.info("Create new task, type:{}, id:{}".format(
             tasktype, newtask.id))
         print("You can press any key to quit.")
         _ = Input()
 
     def reloadTask(self, info):
-        # more feature TODO:
         if info["id"] != self.idPoint:
             raise Exception(
                 "Error id in task:{}\n".format(str(info)) +
                 "But self.idPoint is {}".format(self.idPoint)
             )
 
-        tasktype = self.optionalTasks.get([info["type"]])
+        tasktype = self.optionalTasks.get(info["type"])
         if not tasktype:
             logger.warn("task type not found. info:\n",str(info))
         newtask = tasktype[0].reloadtask(info)
@@ -56,14 +53,15 @@ class TaskManager:
         pass
 
     def pauseTask(self, id):
-        pass
+        print("task {} pause".format(id))
+        logger.info("task {} pause".format(id))
+        self.tasks[id].pause()
 
     def pauseallTask(self):
         print("pausing all tasks before quit...")
         for task in self.tasks:
             if task.state == TaskState.running:
-                print("task {} pause".format(task.id))
-                task.pause()
+                self.pauseTask(task.id)
 
     def showTask(self):
         pass

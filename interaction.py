@@ -6,6 +6,7 @@ from prettytable import PrettyTable
 
 from robot import Robot
 from task import *
+from manager import *
 
 inacSuggest = {
     "task": "tasks"
@@ -13,15 +14,13 @@ inacSuggest = {
 
 
 
-
-
 def taskshow(robot: Robot):
     cls()
-    print(rwc(" "*5+"Press q to quit, SPACE to show detail."+" "*5, 32, 7))
+    print(rwc(" "*5+"Press h for help, SPACE to show detail."+" "*5, 32, 7))
     print(rwc("tasks\n", Color.blue, 1))
-    table = PrettyTable(['Id', 'type', 'state','details'])
+    table = PrettyTable(['Id', 'type', 'state','details','mode'])
     for i in robot.manager.tasks:
-        table.add_row([i.id, i, i.state,i.detail])
+        table.add_row([i.id, i, i.state, rwc(i.detail, Color.blue), rwc(i.modestr(), Color.yellow)])
     print(table)
 
 
@@ -31,14 +30,19 @@ def inacTask(robot: Robot):
         inpchar = Input()
         if inpchar == "q":
             break
-        if inpchar == " ":
+        elif inpchar == " ":
             print("detail")
             # TODO: detail
-        if inpchar == "r":
+        elif inpchar == "r":
             taskshow(robot)
-        if inpchar == "n":
+        elif inpchar == "n":
             robot.manager.createTask()
-            taskshow(robot)
+        elif inpchar == "h":
+            taskhelp()
+        elif inpchar == "s":
+            taskset(robot.manager)
+            
+        taskshow(robot)
     cls()
 
 
@@ -50,7 +54,7 @@ def inacFrame(robot: Robot):
             continue
         elif inputinfo == "help":
             print("help info")
-            # TODO: help info
+            #  help info  TODO:
         elif  inputinfo == "tasks":
             inacTask(robot)
         elif "task" in inputinfo:

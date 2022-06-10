@@ -1,18 +1,16 @@
 from interaction import inacFrame
-from log import Logger
+from log import logger
 from robot import Robot
-
+from database import *
 
 
 
 def main():
-    logger = Logger()
     print("Welcome.")
     logger.info("Robot open.")
-    robot = Robot(logger)
-
-    
+    robot = Robot()
     inacFrame(robot)
+    closedb()
     
 
 
