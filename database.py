@@ -1,10 +1,10 @@
+from encodings import search_function
 import pymysql
 import json
 from func import *
 from log import logger
 
 def jsonimport():
-    # global logger
     try:
         with open("./json/private.json", "r") as f:
             data = json.load(f)["mysql"]
@@ -15,7 +15,6 @@ def jsonimport():
 
 
 def hole_dbinsert(pid, timestamp, like_num, reply, url, text="", comment=";"):
-    # global logger
     data = {
         'pid': pid,
         "timestamp": timestamp,
@@ -41,21 +40,43 @@ def hole_dbinsert(pid, timestamp, like_num, reply, url, text="", comment=";"):
         # print(str(pid) +" error while insert:"+ e)
         db.rollback()
 
+def pid_search(table:str, pid): #comment search TODO:
+    '''
+    ans number = 0: false
+    ans number > 0: (pid, timestrap, like_num, reply, text, comment, url)
+    '''
+    sql = 'select * from {} where pid={}'.format(table, pid)
+    try:
+        cursor.execute(sql)
+    except Exception as e:
+        logger.error("error happend while search pid=[{}] in db {}. ".format(pid, table)+e)
+        return False, "somwthing wrong happend while searching in database."
+    if (cursor.rowcount == 0): 
+        return False, None
+    else:
+        return True, cursor.fetchone()
+    
+
+def hole_num_search():
+    sql = 'select * from {}'.format(dbdata["holetable"])
+    try:
+        cursor.execute(sql)
+    except Exception as e:
+        logger.error("error happend while search hole-num in db {}. ".format(dbdata["holetable"])+e)
+        return False, "somwthing wrong happend while searching in database."
+    return True, cursor.rowcount
+    
 def holestore(data):
     if type(data) != dict:
         data = data.json()
     if data.get("data") and data["data"]:
         data = data["data"]
-    table = dbdata["holetable"]
-    try:
-        sql = 'select * from {} where pid={}'.format(table, data["pid"])
-        cursor.execute(sql)
-        if (cursor.rowcount > 0): 
-            logger.debug("{} already in".format(data["pid"]))
-            return
-    except Exception as e:
-        logger.error(str(data["pid"]) +" error while search in db:"+ e)
-        return 
+    
+    search_ans = pid_search(dbdata["holetable"], data["pid"])
+    if search_ans[0]:
+        logger.debug("{} already in".format(data["pid"]))
+        return False   
+ 
     hole_dbinsert(
         pid = int(data["pid"]),
         timestamp= int(data["timestamp"]),
@@ -64,7 +85,6 @@ def holestore(data):
         text = data["text"],
         url = data["url"]
     )
-    # url TODO:
 
 def holeliststore(responses):
     for response in responses:
@@ -74,8 +94,24 @@ def holeliststore(responses):
 def closedb():
     db.close()
 
-
-
+def show_hole_db(pid):
+    if type(pid) == str:
+        try:
+            pid = int(pid)
+        except:
+            print("something is wrong in your pid.")
+            return False
+    
+    res = pid_search(dbdata["holetable"], pid)
+    if not res[0]: return False
+    print("Pid:{} | time:{} | star:{} | comments:{} | from:database".format(
+        res[1][0], 
+        datetime.datetime.fromtimestamp(res[1][1]),
+        res[1][2], 
+        res[1][3]))
+    print("[洞主]", res[1][4])
+    return True
+    # show comment
 
 dbdata = jsonimport()
 

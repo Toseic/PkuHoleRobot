@@ -146,15 +146,15 @@ class AlarmTask(Task):
             return False
 
     def return_info(self, pid):
-        self.messager("Mached.")
-        show_hole(pid)
+        self.messager("Pid: {} is Matched.".format(pid))
+        show_hole_db(pid)
 
     def begin(self):
         if not self.key_words:
             raise Exception("key words error.")
         super().run()
         while self.state == TaskState.running:
-            hole_list = crawl_list()
+            hole_list,_ = crawl_list()
             self.infoLog("crawl list(deep=1).")
             for pid, hole in hole_list.items():
                 if pid in self.check_record:
@@ -193,6 +193,7 @@ class AlarmTask(Task):
 
 
 class TrapTask(Task):
+    pidpoint = -1
     def __init__(self, id, messager=notice, state=TaskState.pending, cacheload=False) -> None:
         super().__init__(id, messager, state)
         self.sleeptime = 20
@@ -205,7 +206,8 @@ class TrapTask(Task):
     def begin(self):
         super().run()
         while self.state == TaskState.running:
-            holeliststore(crawl_list())
+            info, self.pidpoint = crawl_list(pidpoint=self.pidpoint)
+            holeliststore(info)
             self.infoLog("task:Traptask | crawl list(deep=1)")
             time.sleep(self.sleeptime)
 

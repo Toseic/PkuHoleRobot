@@ -140,12 +140,15 @@ def get_hole(pid):
     return response
 
 
-def show_hole(pid):
+def show_hole_web(pid):
     res_hole = get_hole(pid).json()
     res_comment = get_comment(pid).json()
-
-    print("Pid:{} | star:{} | comments:{}".format(
-        res_hole['data']['pid'], res_hole['data']['likenum'], res_hole['data']['reply']))
+    # empty result TODO:
+    print("Pid:{} | time:{} | star:{} | comments:{} | from:web".format(
+        res_hole['data']['pid'], 
+        datetime.datetime.fromtimestamp(int(res_hole['data']['timestamp'])),
+        res_hole['data']['likenum'], 
+        res_hole['data']['reply']))
     print("[洞主]", res_hole['data']['text'])
     for i in res_comment['data']:
         print(i['text'])
@@ -158,8 +161,27 @@ def info_merge(info_):
         fina[int(hole['pid'])] = hole['text']
     return fina
 
+def point_check(info, pidpoint):
+    before, after = False, False
+    for list in info:
+        datas = list['data']
+        for data in datas:
+            if int(data['pid']) == pidpoint:
+                return True            
+            elif int(data['pid']) < pidpoint:
+                before = True
+            elif int(data['pid']) > pidpoint:
+                after = True
 
-def crawl_list(deep=1, merge=False):
+    if before and after:
+        return True
+
+    return False
+
+def crawl_list(deep=1, merge=False, pidpoint=None):
+    '''
+    pidpoint: crawl result must include pidpoint
+    '''
     # if merge and storeindb:
     #     raise Exception("error: [merge] and [storeindb] are both True!")
     url = 'https://pkuhelper.pku.edu.cn/services/pkuhole/api.php?action=getlist&p={}&PKUHelperAPI=3.0&jsapiver={}&user_token={}'
@@ -169,9 +191,14 @@ def crawl_list(deep=1, merge=False):
         url_i = url.format(i+1)
         response = requests.get(url=url_i, headers=headers, proxies=my_proxies)
         info.append(response.json())
+    if pidpoint and pidpoint != -1:
+        checkres = point_check(info, pidpoint)
+        if not checkres:
+            return crawl_list(deep=deep+1, merge=merge, pidpoint=pidpoint)
+    newpoint = int(info[0]['data'][0]['pid'])
     if merge:
         info = info_merge(info)
-    return info
+    return info,newpoint
 
 
 def get_json():

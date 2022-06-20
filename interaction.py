@@ -23,6 +23,14 @@ def taskshow(robot: Robot):
         table.add_row([i.id, i, i.state, rwc(i.detail, Color.blue), rwc(i.modestr(), Color.yellow)])
     print(table)
 
+def show_hole(pid, web:bool = False):
+    shown = False
+    if not web:
+        shown = show_hole_db(pid)
+    if not shown:
+        show_hole_web(pid)
+
+
 
 def inacTask(robot: Robot):
     taskshow(robot)
@@ -65,12 +73,27 @@ def inacFrame(robot: Robot):
                 id, action = int(inputinfo[1]), inputinfo[2]
                 choosedtask = robot.manager.tasks[id]
                 if action == "begin": 
+                    print("Task {} begin.".format(choosedtask.id))
                     taskrun = threading.Thread(target=choosedtask.begin)
                     taskrun.start()
-                    # choosedtask.begin()
+                    
                 if action == "pause":
+                    print("Task {} pause.".format(choosedtask.id))
                     taskrun = threading.Thread(target=choosedtask.pause)
-                    taskrun.start()                   
+                    taskrun.start()   
+        elif "show" in inputinfo:
+            inputinfo = inputinfo.split()
+            # if len(inputinfo) != 2:
+            #     print("Unknown command")
+            if "web" in inputinfo:
+                show_hole(inputinfo[-1], True)
+            else:
+                show_hole(inputinfo[-1])
+        elif "db" in inputinfo:
+            inputinfo = inputinfo.split()
+            if "num" in inputinfo:
+                searchstatus,searchres = hole_num_search()
+                print(searchres)
         elif "quit" in inputinfo:
             if "-hard" in inputinfo:
                 robot.quit(False)
