@@ -7,3 +7,4 @@
 *.cpp
 .DS_Store
 /test/
+/flask/

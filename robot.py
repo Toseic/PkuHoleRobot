@@ -52,4 +52,4 @@ class Robot:
         with open("./cache/cache.json", "w", encoding='utf-8') as f:
             json.dump(data, f)
 
-        print("Bye.")
+       

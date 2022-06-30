@@ -6,7 +6,7 @@ from prettytable import PrettyTable
 from database import *
 from func import *
 from messager import *
-from log import logger
+from log import logger,scrollmsg
 
 
 class TaskState(Enum):
@@ -53,20 +53,21 @@ class Task:
     def run(self):
         if self.state != TaskState.running:
             self.state = TaskState.running
-            logger.info("task {} begin running.".format(self.id))
+            self.infoLog("task {} begin running.".format(self.id))
 
     def pause(self):
         if self.state != TaskState.pause:
             self.state = TaskState.pause
-            logger.info("task {} pause.".format(self.id))
+            self.infoLog("task {} pause.".format(self.id))
 
     def finish(self):
         if self.state != TaskState.finished:
             self.state = TaskState.finished
-            logger.info("task {} finish.".format(self.id))
+            self.infoLog("task {} finish.".format(self.id))
 
     def infoLog(self, info):
         logger.info(info)
+        scrollmsg.editor(info)
 
     def messagerSet(self):
         # TODO:
@@ -147,6 +148,7 @@ class AlarmTask(Task):
 
     def return_info(self, pid):
         self.messager("Pid: {} is Matched.".format(pid))
+        self.infoLog("Pid: {} is Matched.".format(pid))
         show_hole_db(pid)
 
     def begin(self):

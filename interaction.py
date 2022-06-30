@@ -8,6 +8,7 @@ from robot import Robot
 from task import *
 from manager import *
 
+
 inacSuggest = {
     "task": "tasks"
 }
@@ -23,12 +24,25 @@ def taskshow(robot: Robot):
         table.add_row([i.id, i, i.state, rwc(i.detail, Color.blue), rwc(i.modestr(), Color.yellow)])
     print(table)
 
+def scroll_show(switch = [False,]):
+    while True:
+        if switch[0]: break
+        time.sleep(0.5)
+        cls()
+        print("#"*40)
+        scrollmsg.show()
+        print("#"*40)
+    cls()
+
+
+
 def show_hole(pid, web:bool = False):
     shown = False
     if not web:
         shown = show_hole_db(pid)
     if not shown:
         show_hole_web(pid)
+
 
 
 
@@ -39,8 +53,13 @@ def inacTask(robot: Robot):
         if inpchar == "q":
             break
         elif inpchar == " ":
-            print("detail")
-            # TODO: detail
+            switch = [False,]
+            shower = threading.Thread(target=scroll_show, kwargs= {"switch":switch})
+            switchF = threading.Thread(target=touch_switch, kwargs={"label":switch})
+            shower.start(), switchF.start()
+            shower.join(), switchF.join()
+            
+            
         elif inpchar == "r":
             taskshow(robot)
         elif inpchar == "n":
@@ -106,6 +125,8 @@ def inacFrame(robot: Robot):
             for key, value in inacSuggest.items():
                 if inputinfo == key:
                     print(" Do you mean :'{}' ?".format(value))
+
+
 
 
 if __name__ == '__main__':

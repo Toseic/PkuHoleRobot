@@ -5,7 +5,7 @@ import json
 import os
 from ctypes import *
 
-import requests
+import requests,time
 
 
 dll = CDLL('./dll/input_mac.so')
@@ -204,6 +204,15 @@ def crawl_list(deep=1, merge=False, pidpoint=None):
 def get_json():
     with open("./json/private.json", "r") as gj:
         return json.load(gj)
+
+
+def touch_switch(key=" ", label = [False,]):
+    while True:
+        inp = Input()
+        if inp == key:
+            label[0] = True
+            break
+    return
 
 
 data = get_json()

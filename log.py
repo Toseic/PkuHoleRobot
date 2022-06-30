@@ -1,7 +1,27 @@
 import logging
 import time
+import datetime 
+################## scroll ##################
+
+class scrollMsg():
+    def __init__(self) -> None:
+        self.msgs = []
+    def editor(self, new_msg: str):
+        self.msgs.append(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S  ') +new_msg)
+        if len(self.msgs) > 5:
+            self.msgs = self.msgs[-5:]
+    def show(self):
+        # print(rwc("*"*30,Color.yellow))
+        for msg in self.msgs:
+            print(" "*2+msg)
+        # print(rwc("*"*30,Color.yellow))
+
+scrollmsg = scrollMsg()
+
+################## scroll ##################
 
 
+################## logger ##################
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -18,3 +38,5 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.WARNING)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
+
+################## logger ##################

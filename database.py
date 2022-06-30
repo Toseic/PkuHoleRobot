@@ -30,6 +30,7 @@ def hole_dbinsert(pid, timestamp, like_num, reply, url, text="", comment=";"):
     sql = "insert into {}({}) values ({})".format(
         table, keys, values
     )
+    db.ping(reconnect=True)
     try:
         if cursor.execute(sql, tuple(data.values())):
             logger.debug(str(pid)+" insert successful")
@@ -46,6 +47,7 @@ def pid_search(table:str, pid): #comment search TODO:
     ans number > 0: (pid, timestrap, like_num, reply, text, comment, url)
     '''
     sql = 'select * from {} where pid={}'.format(table, pid)
+    db.ping(reconnect=True)
     try:
         cursor.execute(sql)
     except Exception as e:
@@ -58,6 +60,7 @@ def pid_search(table:str, pid): #comment search TODO:
     
 
 def hole_num_search():
+    db.ping(reconnect=True)
     sql = 'select * from {}'.format(dbdata["holetable"])
     try:
         cursor.execute(sql)
@@ -92,7 +95,11 @@ def holeliststore(responses):
             holestore(hole)
 
 def closedb():
+    print("check database connecting... ")
+    db.ping(reconnect=True)
+    print("closing database.")
     db.close()
+    #  QUIT BUG
 
 def show_hole_db(pid):
     if type(pid) == str:
@@ -111,7 +118,7 @@ def show_hole_db(pid):
         res[1][3]))
     print("[洞主]", res[1][4])
     return True
-    # show comment
+    # show comment TODO
 
 dbdata = jsonimport()
 

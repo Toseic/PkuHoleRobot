@@ -1,6 +1,7 @@
 import ctypes
 import time
 from plyer import notification
+from log import logger
 
 
 def sound():

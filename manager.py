@@ -1,6 +1,7 @@
 from task import *
 from log import logger
 
+
 class TaskManager:
     optionalTasks = {
         'alarm': [AlarmTask, "alarm service"],
@@ -10,6 +11,7 @@ class TaskManager:
     def __init__(self) -> None:
         self.tasks = []
         self.idPoint = 0
+
 
     def createTask(self):
         cls()
@@ -123,3 +125,6 @@ def taskset(manager: TaskManager):
         print("you bad guy.")
     manager.editTask(id, [ans1, ans2])
     _ = Input()
+
+
+

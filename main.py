@@ -11,6 +11,7 @@ def main():
     robot = Robot()
     inacFrame(robot)
     closedb()
+    print("Bye.")
     
 
 
